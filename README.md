@@ -45,8 +45,8 @@ Context switching is expensive. Before starting any task, you need to know:
 
 ```bash
 # Clone the repository
-git clone https://github.com/mrf/dev-command-center.git
-cd dev-command-center
+git clone https://github.com/mrf/dcc.git
+cd dcc
 
 # Build and install
 cargo install --path .
