@@ -1,6 +1,6 @@
-# Rust
-/target/
-**/*.rs.bk
+# Go
+/build/
+/dcc
 
 # IDE
 .idea/

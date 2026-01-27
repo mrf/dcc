@@ -2,7 +2,7 @@
 
 A terminal dashboard that shows your complete developer context at a glance. One command, full context.
 
-![Rust](https://img.shields.io/badge/rust-stable-orange)
+![Go](https://img.shields.io/badge/go-1.21+-00ADD8)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 
 ## Why
@@ -48,18 +48,20 @@ Context switching is expensive. Before starting any task, you need to know:
 git clone https://github.com/mrf/dcc.git
 cd dcc
 
-# Build and install
-cargo install --path .
+# Build
+make build
 
-# Or just build
-cargo build --release
-./target/release/dcc
+# Or install to ~/bin
+make install
+
+# Or run directly
+make run
 ```
 
 ### Requirements
 
-- **Rust** 1.70+ (for building)
-- **macOS** (Calendar integration uses AppleScript)
+- **Go** 1.21+
+- **macOS** (Calendar integration uses AppleScript; other platforms show empty meetings panel)
 - **GitHub CLI** (`gh`) - for PR status
 - **git** - for repository scanning
 
@@ -68,6 +70,9 @@ cargo build --release
 ```bash
 # Run the dashboard
 dcc
+
+# Or with make
+make run
 
 # Keyboard shortcuts
 q / Esc    - Quit
@@ -143,19 +148,19 @@ ignore_dirs = ["node_modules", ".git", "target", "vendor"]
 
 ```bash
 # Run in development mode
-cargo run
+make dev
 
 # Run tests
-cargo test
+go test ./...
 
 # Build release
-cargo build --release
+make build
 
 # Format code
-cargo fmt
+go fmt ./...
 
 # Lint
-cargo clippy
+go vet ./...
 ```
 
 ## License
@@ -164,4 +169,4 @@ MIT License - see [LICENSE](LICENSE) for details.
 
 ## Contributing
 
-Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+Contributions welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.

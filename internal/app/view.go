@@ -1,0 +1,128 @@
+package app
+
+import (
+	"fmt"
+	"time"
+
+	"github.com/charmbracelet/lipgloss"
+	"github.com/mrf/dcc/internal/ui"
+)
+
+// View implements tea.Model
+func (m Model) View() string {
+	if m.Width == 0 || m.Height == 0 {
+		return "Loading..."
+	}
+
+	// Calculate layout dimensions
+	// Top row: 40% height for 3 panels
+	// Middle row: 30% height for git
+	// Bottom row: 20% height for stashes
+	// Status bar: 3 lines
+
+	statusBarHeight := 3
+	topRowHeight := (m.Height - statusBarHeight) * 40 / 100
+	middleRowHeight := (m.Height - statusBarHeight) * 30 / 100
+	bottomRowHeight := m.Height - statusBarHeight - topRowHeight - middleRowHeight
+
+	// Top row: Meetings (30%), PRs (40%), Ports (30%)
+	meetingsWidth := m.Width * 30 / 100
+	prsWidth := m.Width * 40 / 100
+	portsWidth := m.Width - meetingsWidth - prsWidth
+
+	// Render panels
+	meetingsPanel := ui.RenderMeetingsPanel(
+		m.Meetings,
+		meetingsWidth-2,
+		topRowHeight-2,
+		m.SelectedPanel == PanelMeetings,
+		m.IsLoading,
+	)
+
+	prsPanel := ui.RenderPrsPanel(
+		m.Prs,
+		prsWidth-2,
+		topRowHeight-2,
+		m.SelectedPanel == PanelPrs,
+		m.IsLoading,
+	)
+
+	portsPanel := ui.RenderPortsPanel(
+		m.Ports,
+		portsWidth-2,
+		topRowHeight-2,
+		m.SelectedPanel == PanelPorts,
+		m.IsLoading,
+	)
+
+	gitPanel := ui.RenderGitPanel(
+		m.Git,
+		m.Width-2,
+		middleRowHeight-2,
+		m.SelectedPanel == PanelGit,
+		m.IsLoading,
+	)
+
+	stashesPanel := ui.RenderStashesPanel(
+		m.Git,
+		m.Width-2,
+		bottomRowHeight-2,
+		m.SelectedPanel == PanelStashes,
+		m.IsLoading,
+	)
+
+	// Compose layout
+	topRow := lipgloss.JoinHorizontal(lipgloss.Top, meetingsPanel, prsPanel, portsPanel)
+
+	statusBar := m.renderStatusBar()
+
+	return lipgloss.JoinVertical(lipgloss.Left,
+		topRow,
+		gitPanel,
+		stashesPanel,
+		statusBar,
+	)
+}
+
+func (m Model) renderStatusBar() string {
+	// Show keyboard shortcuts and last refresh time
+	shortcuts := []struct {
+		key   string
+		label string
+	}{
+		{"r", "refresh"},
+		{"p", "prs"},
+		{"m", "meetings"},
+		{"g", "git"},
+		{"q", "quit"},
+	}
+
+	var parts []string
+	for _, s := range shortcuts {
+		key := lipgloss.NewStyle().Bold(true).Foreground(ui.ColorCyan).Render("[" + s.key + "]")
+		parts = append(parts, key+s.label)
+	}
+
+	shortcutsStr := lipgloss.JoinHorizontal(lipgloss.Left, parts[0], " ", parts[1], " ", parts[2], " ", parts[3], " ", parts[4])
+
+	// Calculate time since last refresh
+	var refreshStr string
+	if !m.LastRefresh.IsZero() {
+		elapsed := time.Since(m.LastRefresh)
+		if elapsed < time.Minute {
+			refreshStr = fmt.Sprintf("Updated: %ds ago", int(elapsed.Seconds()))
+		} else {
+			refreshStr = fmt.Sprintf("Updated: %dm ago", int(elapsed.Minutes()))
+		}
+	}
+
+	// Pad to fill width
+	padding := m.Width - lipgloss.Width(shortcutsStr) - len(refreshStr) - 4
+	if padding < 0 {
+		padding = 0
+	}
+
+	return ui.StatusBarStyle.Render(
+		shortcutsStr + fmt.Sprintf("%*s", padding, "") + refreshStr,
+	)
+}
