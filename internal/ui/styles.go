@@ -4,16 +4,16 @@ import "github.com/charmbracelet/lipgloss"
 
 // Color constants matching the Rust version
 var (
-	ColorGreen   = lipgloss.Color("#00ff00")
-	ColorYellow  = lipgloss.Color("#ffff00")
-	ColorOrange  = lipgloss.Color("#ff8c00")
-	ColorRed     = lipgloss.Color("#ff0000")
-	ColorCyan    = lipgloss.Color("#00ffff")
-	ColorMagenta = lipgloss.Color("#ff00ff")
-	ColorBlue    = lipgloss.Color("#0087ff")
-	ColorWhite   = lipgloss.Color("#ffffff")
-	ColorGray    = lipgloss.Color("#808080")
-	ColorDarkGray= lipgloss.Color("#404040")
+	ColorGreen    = lipgloss.Color("#00ff00")
+	ColorYellow   = lipgloss.Color("#ffff00")
+	ColorOrange   = lipgloss.Color("#ff8c00")
+	ColorRed      = lipgloss.Color("#ff0000")
+	ColorCyan     = lipgloss.Color("#00ffff")
+	ColorMagenta  = lipgloss.Color("#ff00ff")
+	ColorBlue     = lipgloss.Color("#0087ff")
+	ColorWhite    = lipgloss.Color("#ffffff")
+	ColorGray     = lipgloss.Color("#808080")
+	ColorDarkGray = lipgloss.Color("#404040")
 )
 
 // Panel styles

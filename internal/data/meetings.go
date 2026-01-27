@@ -30,13 +30,13 @@ const (
 
 // MeetingsPanel holds meeting data for display
 type MeetingsPanel struct {
-	NextMeeting   *Meeting
-	Upcoming      []Meeting
-	Status        MeetingStatus
-	MinutesUntil  int64
-	EndsIn        int64
-	IsLoading     bool
-	Unsupported   bool
+	NextMeeting  *Meeting
+	Upcoming     []Meeting
+	Status       MeetingStatus
+	MinutesUntil int64
+	EndsIn       int64
+	IsLoading    bool
+	Unsupported  bool
 }
 
 // FetchMeetings retrieves meetings from Calendar.app (macOS only)

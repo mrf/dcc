@@ -36,10 +36,10 @@ type Model struct {
 // NewModel creates a new model with the given config
 func NewModel(cfg config.Config) Model {
 	return Model{
-		Meetings: data.MeetingsPanel{IsLoading: true},
-		Prs:      data.PrsPanel{IsLoading: true},
-		Ports:    data.PortsPanel{IsLoading: true},
-		Git:      data.GitPanel{IsLoading: true},
+		Meetings:      data.MeetingsPanel{IsLoading: true},
+		Prs:           data.PrsPanel{IsLoading: true},
+		Ports:         data.PortsPanel{IsLoading: true},
+		Git:           data.GitPanel{IsLoading: true},
 		SelectedPanel: PanelMeetings,
 		IsLoading:     true,
 		Config:        cfg,
@@ -50,7 +50,7 @@ func NewModel(cfg config.Config) Model {
 func (m Model) Init() tea.Cmd {
 	return tea.Batch(
 		m.fetchAllData(),
-		tickCmd(time.Duration(m.Config.General.RefreshIntervalSeconds) * time.Second),
+		tickCmd(time.Duration(m.Config.General.RefreshIntervalSeconds)*time.Second),
 	)
 }
 
