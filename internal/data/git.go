@@ -24,6 +24,7 @@ type DirtyRepo struct {
 // StashInfo represents a git stash entry
 type StashInfo struct {
 	Repo    string
+	Path    string
 	Index   int
 	Message string
 	AgeDays int64
@@ -209,7 +210,11 @@ func getGitStashes(repoPath, repoName string) []StashInfo {
 		return nil
 	}
 
-	return parseGitStashes(string(output), repoName)
+	stashes := parseGitStashes(string(output), repoName)
+	for i := range stashes {
+		stashes[i].Path = repoPath
+	}
+	return stashes
 }
 
 func parseGitStashes(output, repoName string) []StashInfo {
@@ -290,19 +295,43 @@ func parseRelativeTime(timeStr string) int64 {
 	return 0
 }
 
-// OpenFirstDirtyRepo opens the first dirty repo in VS Code or Finder
-func OpenFirstDirtyRepo(panel GitPanel) error {
-	if len(panel.DirtyRepos) == 0 {
+// OpenDirtyRepoByIndex opens the dirty repo at the given cursor index in editor
+func OpenDirtyRepoByIndex(panel GitPanel, idx int) error {
+	if idx < 0 || idx >= len(panel.DirtyRepos) || idx >= 6 {
 		return nil
 	}
 
-	path := panel.DirtyRepos[0].Path
+	return openInEditor(panel.DirtyRepos[idx].Path)
+}
 
-	// Try VS Code first
+// OpenStashRepoByIndex opens the stash repo at the given cursor index in editor.
+// Items are indexed by repo group in display order (up to 4 groups).
+func OpenStashRepoByIndex(panel GitPanel, idx int) error {
+	var repoOrder []string
+	seen := make(map[string]bool)
+	for _, s := range panel.Stashes {
+		if !seen[s.Repo] {
+			seen[s.Repo] = true
+			repoOrder = append(repoOrder, s.Repo)
+		}
+	}
+
+	if idx < 0 || idx >= len(repoOrder) || idx >= 4 {
+		return nil
+	}
+
+	targetRepo := repoOrder[idx]
+	for _, s := range panel.Stashes {
+		if s.Repo == targetRepo && s.Path != "" {
+			return openInEditor(s.Path)
+		}
+	}
+	return nil
+}
+
+func openInEditor(path string) error {
 	if _, err := exec.LookPath("code"); err == nil {
 		return exec.Command("code", path).Run()
 	}
-
-	// Fallback to open (Finder on macOS)
 	return exec.Command("open", path).Run()
 }

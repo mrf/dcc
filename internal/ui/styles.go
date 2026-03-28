@@ -142,6 +142,14 @@ func GitStatusColor(staged, modified, untracked int) lipgloss.Color {
 	return ColorCyan
 }
 
+// ItemPrefix returns the prefix for a list item based on cursor state
+func ItemPrefix(isCursor bool) string {
+	if isCursor {
+		return lipgloss.NewStyle().Bold(true).Foreground(ColorCyan).Render("> ")
+	}
+	return "  "
+}
+
 // Truncate truncates a string to maxLen, adding "..." if needed
 func Truncate(s string, maxLen int) string {
 	if len(s) <= maxLen {

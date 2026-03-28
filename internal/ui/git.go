@@ -9,7 +9,7 @@ import (
 )
 
 // RenderGitPanel renders the git dirty repos panel
-func RenderGitPanel(panel data.GitPanel, width, height int, selected, loading bool) string {
+func RenderGitPanel(panel data.GitPanel, width, height int, selected, loading bool, cursorIdx int) string {
 	style := GetPanelStyle(selected, loading, ColorYellow).
 		Width(width).
 		Height(height)
@@ -36,13 +36,15 @@ func RenderGitPanel(panel data.GitPanel, width, height int, selected, loading bo
 			break
 		}
 
-		content.WriteString(renderDirtyRepoLine(repo, width-4) + "\n")
+		isCursor := selected && i == cursorIdx
+		content.WriteString(renderDirtyRepoLine(repo, width-4, isCursor) + "\n")
 	}
 
 	return style.Render(content.String())
 }
 
-func renderDirtyRepoLine(repo data.DirtyRepo, maxWidth int) string {
+func renderDirtyRepoLine(repo data.DirtyRepo, maxWidth int, isCursor bool) string {
+	prefix := ItemPrefix(isCursor)
 	// Color based on status priority
 	statusColor := GitStatusColor(repo.Staged, repo.Modified, repo.Untracked)
 
@@ -73,5 +75,5 @@ func renderDirtyRepoLine(repo data.DirtyRepo, maxWidth int) string {
 
 	statusStr := strings.Join(statusParts, ", ")
 
-	return fmt.Sprintf("  %s %s%s", repoNameStyled, branchStr, statusStr)
+	return fmt.Sprintf("%s%s %s%s", prefix, repoNameStyled, branchStr, statusStr)
 }

@@ -9,7 +9,7 @@ import (
 )
 
 // RenderPortsPanel renders the ports panel
-func RenderPortsPanel(panel data.PortsPanel, width, height int, selected, loading bool) string {
+func RenderPortsPanel(panel data.PortsPanel, width, height int, selected, loading bool, cursorIdx int) string {
 	style := GetPanelStyle(selected, loading, ColorCyan).
 		Width(width).
 		Height(height)
@@ -36,12 +36,15 @@ func RenderPortsPanel(panel data.PortsPanel, width, height int, selected, loadin
 			break
 		}
 
+		isCursor := selected && i == cursorIdx
+		prefix := ItemPrefix(isCursor)
+
 		portColor := PortColor(port.Port)
 		portStr := lipgloss.NewStyle().Foreground(portColor).Render(fmt.Sprintf(":%d", port.Port))
 
 		processName := Truncate(port.Process, width-12)
 
-		content.WriteString(fmt.Sprintf("%s %s\n", portStr, processName))
+		content.WriteString(fmt.Sprintf("%s%s %s\n", prefix, portStr, processName))
 	}
 
 	return style.Render(content.String())

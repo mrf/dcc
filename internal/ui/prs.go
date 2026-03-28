@@ -9,7 +9,7 @@ import (
 )
 
 // RenderPrsPanel renders the pull requests panel
-func RenderPrsPanel(panel data.PrsPanel, width, height int, selected, loading bool) string {
+func RenderPrsPanel(panel data.PrsPanel, width, height int, selected, loading bool, cursorIdx int) string {
 	style := GetPanelStyle(selected, loading, ColorMagenta).
 		Width(width).
 		Height(height)
@@ -24,6 +24,8 @@ func RenderPrsPanel(panel data.PrsPanel, width, height int, selected, loading bo
 		return style.Render(content.String())
 	}
 
+	itemIdx := 0
+
 	// Needs Review section
 	needsReviewTitle := fmt.Sprintf("Needs Review (%d)", len(panel.NeedsReview))
 	content.WriteString(BoldStyle.Render(needsReviewTitle) + "\n")
@@ -36,7 +38,9 @@ func RenderPrsPanel(panel data.PrsPanel, width, height int, selected, loading bo
 				content.WriteString(DimStyle.Render(fmt.Sprintf("  +%d more...", len(panel.NeedsReview)-4)) + "\n")
 				break
 			}
-			content.WriteString(renderPrLine(pr, width-4, false) + "\n")
+			isCursor := selected && itemIdx == cursorIdx
+			content.WriteString(renderPrLine(pr, width-4, false, isCursor) + "\n")
+			itemIdx++
 		}
 	}
 
@@ -54,14 +58,18 @@ func RenderPrsPanel(panel data.PrsPanel, width, height int, selected, loading bo
 				content.WriteString(DimStyle.Render(fmt.Sprintf("  +%d more...", len(panel.YourPrs)-4)) + "\n")
 				break
 			}
-			content.WriteString(renderPrLine(pr, width-4, true) + "\n")
+			isCursor := selected && itemIdx == cursorIdx
+			content.WriteString(renderPrLine(pr, width-4, true, isCursor) + "\n")
+			itemIdx++
 		}
 	}
 
 	return style.Render(content.String())
 }
 
-func renderPrLine(pr data.PullRequest, maxWidth int, showStatus bool) string {
+func renderPrLine(pr data.PullRequest, maxWidth int, showStatus bool, isCursor bool) string {
+	prefix := ItemPrefix(isCursor)
+
 	// Format: #123 Title 2d [status]
 	prNum := fmt.Sprintf("#%d", pr.Number)
 
@@ -91,5 +99,5 @@ func renderPrLine(pr data.PullRequest, maxWidth int, showStatus bool) string {
 	}
 	title := Truncate(pr.Title, titleWidth)
 
-	return fmt.Sprintf("  %s %s %s%s", prNum, title, ageStyled, statusIndicator)
+	return fmt.Sprintf("%s%s %s %s%s", prefix, prNum, title, ageStyled, statusIndicator)
 }

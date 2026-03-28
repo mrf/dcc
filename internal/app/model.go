@@ -26,6 +26,7 @@ type Model struct {
 	Ports         data.PortsPanel
 	Git           data.GitPanel
 	SelectedPanel Panel
+	Cursors       [5]int
 	IsLoading     bool
 	LastRefresh   time.Time
 	Config        config.Config
@@ -82,6 +83,74 @@ func (m Model) fetchAllData() tea.Cmd {
 			Ports:    ports,
 			Git:      git,
 		}
+	}
+}
+
+// PanelItemCount returns the number of selectable items in the given panel
+func (m Model) PanelItemCount(panel Panel) int {
+	switch panel {
+	case PanelMeetings:
+		return 0 // no item-level selection
+	case PanelPrs:
+		nr := len(m.Prs.NeedsReview)
+		if nr > 4 {
+			nr = 4
+		}
+		yp := len(m.Prs.YourPrs)
+		if yp > 4 {
+			yp = 4
+		}
+		return nr + yp
+	case PanelPorts:
+		count := len(m.Ports.Ports)
+		if count > 10 {
+			count = 10
+		}
+		return count
+	case PanelGit:
+		count := len(m.Git.DirtyRepos)
+		if count > 6 {
+			count = 6
+		}
+		return count
+	case PanelStashes:
+		seen := make(map[string]bool)
+		for _, s := range m.Git.Stashes {
+			seen[s.Repo] = true
+		}
+		count := len(seen)
+		if count > 4 {
+			count = 4
+		}
+		return count
+	}
+	return 0
+}
+
+// ClampCursors ensures all cursors are within bounds
+func (m *Model) ClampCursors() {
+	for i := Panel(0); i <= PanelStashes; i++ {
+		count := m.PanelItemCount(i)
+		if count == 0 {
+			m.Cursors[i] = 0
+		} else if m.Cursors[i] >= count {
+			m.Cursors[i] = count - 1
+		}
+	}
+}
+
+// CursorUp moves the cursor up in the current panel
+func (m *Model) CursorUp() {
+	if m.Cursors[m.SelectedPanel] > 0 {
+		m.Cursors[m.SelectedPanel]--
+	}
+}
+
+// CursorDown moves the cursor down in the current panel
+func (m *Model) CursorDown() {
+	count := m.PanelItemCount(m.SelectedPanel)
+	if count > 0 && m.Cursors[m.SelectedPanel] < count-1 {
+		m.Cursors[m.SelectedPanel]++
 	}
 }
 

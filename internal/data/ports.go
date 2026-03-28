@@ -1,6 +1,7 @@
 package data
 
 import (
+	"fmt"
 	"os/exec"
 	"sort"
 	"strconv"
@@ -167,4 +168,13 @@ func extractPort(address string) uint16 {
 	}
 
 	return uint16(port)
+}
+
+// OpenPort opens localhost at the given port index in browser
+func OpenPort(panel PortsPanel, idx int) error {
+	if idx < 0 || idx >= len(panel.Ports) || idx >= 10 {
+		return nil
+	}
+	url := fmt.Sprintf("http://localhost:%d", panel.Ports[idx].Port)
+	return exec.Command("open", url).Run()
 }

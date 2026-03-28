@@ -9,7 +9,7 @@ import (
 )
 
 // RenderMeetingsPanel renders the meetings panel
-func RenderMeetingsPanel(panel data.MeetingsPanel, width, height int, selected, loading bool) string {
+func RenderMeetingsPanel(panel data.MeetingsPanel, width, height int, selected, loading bool, cursorIdx int) string {
 	// Determine border color based on status
 	borderColor := determineMeetingsBorderColor(panel)
 

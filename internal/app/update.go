@@ -26,6 +26,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.Git = msg.Git
 		m.IsLoading = false
 		m.LastRefresh = time.Now()
+		m.ClampCursors()
 		return m, nil
 
 	case TickMsg:
@@ -58,12 +59,16 @@ func (m Model) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		m.PrevPanel()
 		return m, nil
 
-	case "p":
-		// Open first PR in browser
-		go func() {
-			_ = data.OpenFirstPr(m.Prs)
-		}()
+	case "up", "k":
+		m.CursorUp()
 		return m, nil
+
+	case "down", "j":
+		m.CursorDown()
+		return m, nil
+
+	case "enter":
+		return m.handleEnter()
 
 	case "m":
 		// Open Calendar app
@@ -71,14 +76,34 @@ func (m Model) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			_ = exec.Command("open", "-a", "Calendar").Run()
 		}()
 		return m, nil
-
-	case "g":
-		// Open first dirty repo in VS Code or Finder
-		go func() {
-			_ = data.OpenFirstDirtyRepo(m.Git)
-		}()
-		return m, nil
 	}
 
+	return m, nil
+}
+
+func (m Model) handleEnter() (tea.Model, tea.Cmd) {
+	idx := m.Cursors[m.SelectedPanel]
+	switch m.SelectedPanel {
+	case PanelMeetings:
+		go func() {
+			_ = exec.Command("open", "-a", "Calendar").Run()
+		}()
+	case PanelPrs:
+		go func() {
+			_ = data.OpenPrByIndex(m.Prs, idx)
+		}()
+	case PanelPorts:
+		go func() {
+			_ = data.OpenPort(m.Ports, idx)
+		}()
+	case PanelGit:
+		go func() {
+			_ = data.OpenDirtyRepoByIndex(m.Git, idx)
+		}()
+	case PanelStashes:
+		go func() {
+			_ = data.OpenStashRepoByIndex(m.Git, idx)
+		}()
+	}
 	return m, nil
 }
