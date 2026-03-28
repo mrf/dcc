@@ -2,6 +2,7 @@ package app
 
 import (
 	"os/exec"
+	"runtime"
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -66,10 +67,12 @@ func (m Model) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case "m":
-		// Open Calendar app
-		go func() {
-			_ = exec.Command("open", "-a", "Calendar").Run()
-		}()
+		// Open Calendar app (macOS only)
+		if runtime.GOOS == "darwin" {
+			go func() {
+				_ = exec.Command("open", "-a", "Calendar").Run()
+			}()
+		}
 		return m, nil
 
 	case "g":
