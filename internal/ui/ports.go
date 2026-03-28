@@ -14,15 +14,15 @@ func RenderPortsPanel(panel data.PortsPanel, width, height int, selected, loadin
 		Width(width).
 		Height(height)
 
-	title := TitleStyle.Render("PORTS")
-
 	var content strings.Builder
-	content.WriteString(title + "\n\n")
 
 	if loading || panel.IsLoading {
+		content.WriteString(TitleStyle.Render("PORTS") + "\n\n")
 		content.WriteString(ItalicStyle.Render("Scanning ports..."))
 		return style.Render(content.String())
 	}
+
+	content.WriteString(TitleStyle.Render(TitleWithCount("PORTS", len(panel.Ports))) + "\n\n")
 
 	if len(panel.Ports) == 0 {
 		content.WriteString(DimStyle.Render("No listening ports"))

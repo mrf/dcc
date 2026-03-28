@@ -1,6 +1,10 @@
 package ui
 
-import "github.com/charmbracelet/lipgloss"
+import (
+	"fmt"
+
+	"github.com/charmbracelet/lipgloss"
+)
 
 // Color constants matching the Rust version
 var (
@@ -140,6 +144,14 @@ func GitStatusColor(staged, modified, untracked int) lipgloss.Color {
 		return ColorYellow
 	}
 	return ColorCyan
+}
+
+// TitleWithCount returns "LABEL (n)" when count > 0, or just "LABEL" otherwise.
+func TitleWithCount(label string, count int) string {
+	if count > 0 {
+		return fmt.Sprintf("%s (%d)", label, count)
+	}
+	return label
 }
 
 // Truncate truncates a string to maxLen, adding "..." if needed

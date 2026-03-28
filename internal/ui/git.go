@@ -14,15 +14,15 @@ func RenderGitPanel(panel data.GitPanel, width, height int, selected, loading bo
 		Width(width).
 		Height(height)
 
-	title := TitleStyle.Render("UNCOMMITTED WORK")
-
 	var content strings.Builder
-	content.WriteString(title + "\n\n")
 
 	if loading || panel.IsLoading {
+		content.WriteString(TitleStyle.Render("UNCOMMITTED WORK") + "\n\n")
 		content.WriteString(ItalicStyle.Render("Scanning repos..."))
 		return style.Render(content.String())
 	}
+
+	content.WriteString(TitleStyle.Render(TitleWithCount("UNCOMMITTED WORK", len(panel.DirtyRepos))) + "\n\n")
 
 	if len(panel.DirtyRepos) == 0 {
 		content.WriteString(DimStyle.Render("All repos clean!"))
@@ -47,11 +47,7 @@ func renderDirtyRepoLine(repo data.DirtyRepo, maxWidth int) string {
 	statusColor := GitStatusColor(repo.Staged, repo.Modified, repo.Untracked)
 
 	// Repo name (padded to 20 chars)
-	repoName := repo.Name
-	if len(repoName) > 20 {
-		repoName = repoName[:17] + "..."
-	}
-	repoName = fmt.Sprintf("%-20s", repoName)
+	repoName := fmt.Sprintf("%-20s", Truncate(repo.Name, 20))
 	repoNameStyled := lipgloss.NewStyle().Foreground(statusColor).Render(repoName)
 
 	// Status counts

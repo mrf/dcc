@@ -14,15 +14,27 @@ func RenderPrsPanel(panel data.PrsPanel, width, height int, selected, loading bo
 		Width(width).
 		Height(height)
 
-	title := TitleStyle.Render("PULL REQUESTS")
-
 	var content strings.Builder
-	content.WriteString(title + "\n\n")
 
 	if loading || panel.IsLoading {
+		content.WriteString(TitleStyle.Render("PULL REQUESTS") + "\n\n")
 		content.WriteString(ItalicStyle.Render("Fetching PRs..."))
 		return style.Render(content.String())
 	}
+
+	// Build title with counts
+	title := "PULL REQUESTS"
+	var countParts []string
+	if len(panel.NeedsReview) > 0 {
+		countParts = append(countParts, fmt.Sprintf("%d review", len(panel.NeedsReview)))
+	}
+	if len(panel.YourPrs) > 0 {
+		countParts = append(countParts, fmt.Sprintf("%d yours", len(panel.YourPrs)))
+	}
+	if len(countParts) > 0 {
+		title = fmt.Sprintf("PULL REQUESTS (%s)", strings.Join(countParts, ", "))
+	}
+	content.WriteString(TitleStyle.Render(title) + "\n\n")
 
 	// Needs Review section
 	needsReviewTitle := fmt.Sprintf("Needs Review (%d)", len(panel.NeedsReview))
