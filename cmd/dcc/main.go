@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"os"
 
@@ -9,7 +10,24 @@ import (
 	"github.com/mrf/dcc/internal/config"
 )
 
+// version is set via -ldflags at build time.
+var version = "dev"
+
 func main() {
+	showVersion := flag.Bool("version", false, "print version and exit")
+	showConfigPath := flag.Bool("config-path", false, "print resolved config file path and exit")
+	flag.Parse()
+
+	if *showVersion {
+		fmt.Println(version)
+		return
+	}
+
+	if *showConfigPath {
+		fmt.Println(config.Path())
+		return
+	}
+
 	// Load configuration
 	cfg, err := config.Load()
 	if err != nil {

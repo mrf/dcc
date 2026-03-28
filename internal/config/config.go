@@ -97,17 +97,24 @@ func expandPath(path string) string {
 	return path
 }
 
-// Load loads the configuration from ~/.config/dcc/config.toml
-// Falls back to defaults if the file doesn't exist
+// Path returns the resolved path to the config file.
+func Path() string {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return ""
+	}
+	return filepath.Join(homeDir, ".config", "dcc", "config.toml")
+}
+
+// Load reads the config file at Path() and merges it with defaults.
+// Returns defaults if the file doesn't exist or the home directory is unresolvable.
 func Load() (Config, error) {
 	cfg := DefaultConfig()
 
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
+	configPath := Path()
+	if configPath == "" {
 		return cfg, nil // Return defaults
 	}
-
-	configPath := filepath.Join(homeDir, ".config", "dcc", "config.toml")
 
 	data, err := os.ReadFile(configPath)
 	if err != nil {
