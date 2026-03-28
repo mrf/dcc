@@ -21,6 +21,20 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case DataFetchedMsg:
+		var cmds []tea.Cmd
+
+		// Detect changes if we have previous data
+		if !m.LastRefresh.IsZero() {
+			notes := detectPrChanges(m.Prs, msg.Prs)
+			if meetingNote := detectMeetingSoon(m.Meetings, msg.Meetings); meetingNote != "" {
+				notes = append(notes, meetingNote)
+			}
+			if len(notes) > 0 {
+				m.Notifications = notes
+				cmds = append(cmds, clearNotificationCmd())
+			}
+		}
+
 		m.Meetings = msg.Meetings
 		m.Prs = msg.Prs
 		m.Ports = msg.Ports
@@ -28,6 +42,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.IsLoading = false
 		m.LastRefresh = time.Now()
 		m.ClampCursors()
+		return m, tea.Batch(cmds...)
+
+	case ClearNotificationMsg:
+		m.Notifications = nil
 		return m, nil
 
 	case TickMsg:

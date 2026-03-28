@@ -32,6 +32,7 @@ type Model struct {
 	Config        config.Config
 	Width         int
 	Height        int
+	Notifications []string
 }
 
 // NewModel creates a new model with the given config
