@@ -15,6 +15,7 @@ import (
 type DirtyRepo struct {
 	Name      string
 	Path      string
+	Branch    string
 	Modified  int
 	Untracked int
 	Staged    int
@@ -65,6 +66,7 @@ func FetchGitStatus(cfg config.GitConfig, projectsDir string) GitPanel {
 			dirtyRepos = append(dirtyRepos, DirtyRepo{
 				Name:      repoName,
 				Path:      repoPath,
+				Branch:    getGitBranch(repoPath),
 				Modified:  changes.Modified,
 				Untracked: changes.Untracked,
 				Staged:    changes.Staged,
@@ -147,6 +149,15 @@ type gitChanges struct {
 	Modified  int
 	Untracked int
 	Staged    int
+}
+
+func getGitBranch(repoPath string) string {
+	cmd := exec.Command("git", "-C", repoPath, "rev-parse", "--abbrev-ref", "HEAD")
+	output, err := cmd.Output()
+	if err != nil {
+		return ""
+	}
+	return strings.TrimSpace(string(output))
 }
 
 func getGitChanges(repoPath string) gitChanges {
