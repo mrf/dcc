@@ -2,6 +2,7 @@ package app
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/charmbracelet/lipgloss"
@@ -97,13 +98,13 @@ func (m Model) renderStatusBar() string {
 		{"q", "quit"},
 	}
 
+	keyStyle := lipgloss.NewStyle().Bold(true).Foreground(ui.ColorCyan)
 	var parts []string
 	for _, s := range shortcuts {
-		key := lipgloss.NewStyle().Bold(true).Foreground(ui.ColorCyan).Render("[" + s.key + "]")
-		parts = append(parts, key+s.label)
+		parts = append(parts, keyStyle.Render("["+s.key+"]")+s.label)
 	}
 
-	shortcutsStr := lipgloss.JoinHorizontal(lipgloss.Left, parts[0], " ", parts[1], " ", parts[2], " ", parts[3], " ", parts[4])
+	shortcutsStr := strings.Join(parts, " ")
 
 	// Calculate time since last refresh
 	var refreshStr string
@@ -122,7 +123,16 @@ func (m Model) renderStatusBar() string {
 		padding = 0
 	}
 
-	return ui.StatusBarStyle.Render(
-		shortcutsStr + fmt.Sprintf("%*s", padding, "") + refreshStr,
-	)
+	statusLine := shortcutsStr + fmt.Sprintf("%*s", padding, "") + refreshStr
+
+	// Show notification bar if there are active notifications
+	if len(m.Notifications) > 0 {
+		notifStyle := lipgloss.NewStyle().Bold(true).Foreground(ui.ColorYellow)
+		notifText := strings.Join(m.Notifications, " | ")
+		notifText = ui.Truncate(notifText, m.Width-4)
+		notifLine := notifStyle.Render("▸ " + notifText)
+		return ui.StatusBarStyle.Render(notifLine + "\n" + statusLine)
+	}
+
+	return ui.StatusBarStyle.Render(statusLine)
 }

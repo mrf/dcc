@@ -16,3 +16,6 @@ type DataFetchedMsg struct {
 
 // TickMsg is sent periodically for auto-refresh
 type TickMsg time.Time
+
+// ClearNotificationMsg clears the notification bar after a timeout
+type ClearNotificationMsg struct{}
