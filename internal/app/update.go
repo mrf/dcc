@@ -97,6 +97,11 @@ func (m Model) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			}()
 		}
 		return m, nil
+
+	case "f":
+		// Toggle focus mode (meetings-only view)
+		m.FocusMode = !m.FocusMode
+		return m, nil
 	}
 
 	return m, nil

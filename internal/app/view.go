@@ -9,19 +9,39 @@ import (
 	"github.com/mrf/dcc/internal/ui"
 )
 
+const statusBarHeight = 3
+
 // View implements tea.Model
 func (m Model) View() string {
 	if m.Width == 0 || m.Height == 0 {
 		return "Loading..."
 	}
 
-	// Calculate layout dimensions
-	// Top row: 40% height for 3 panels
-	// Middle row: 30% height for git
-	// Bottom row: 20% height for stashes
-	// Status bar: 3 lines
+	if m.FocusMode {
+		return m.viewFocusMode()
+	}
 
-	statusBarHeight := 3
+	return m.viewFull()
+}
+
+func (m Model) viewFocusMode() string {
+	panelHeight := m.Height - statusBarHeight
+
+	meetingsPanel := ui.RenderMeetingsPanel(
+		m.Meetings,
+		m.Width-2,
+		panelHeight-2,
+		true,
+		m.IsLoading,
+		m.Cursors[int(PanelMeetings)],
+	)
+
+	statusBar := m.renderStatusBar()
+
+	return lipgloss.JoinVertical(lipgloss.Left, meetingsPanel, statusBar)
+}
+
+func (m Model) viewFull() string {
 	topRowHeight := (m.Height - statusBarHeight) * 40 / 100
 	middleRowHeight := (m.Height - statusBarHeight) * 30 / 100
 	bottomRowHeight := m.Height - statusBarHeight - topRowHeight - middleRowHeight
@@ -92,6 +112,13 @@ func (m Model) View() string {
 
 func (m Model) renderStatusBar() string {
 	// Show keyboard shortcuts and last refresh time
+	var focusLabel string
+	if m.FocusMode {
+		focusLabel = "dashboard"
+	} else {
+		focusLabel = "focus"
+	}
+
 	shortcuts := []struct {
 		key   string
 		label string
@@ -99,6 +126,7 @@ func (m Model) renderStatusBar() string {
 		{"tab", "panel"},
 		{"\u2191\u2193", "select"},
 		{"\u23ce", "open"},
+		{"f", focusLabel},
 		{"r", "refresh"},
 		{"q", "quit"},
 	}

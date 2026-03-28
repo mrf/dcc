@@ -27,6 +27,7 @@ type Model struct {
 	Git           data.GitPanel
 	SelectedPanel Panel
 	Cursors       [5]int
+	FocusMode     bool
 	IsLoading     bool
 	LastRefresh   time.Time
 	Config        config.Config
