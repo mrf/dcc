@@ -47,12 +47,14 @@ func renderDirtyRepoLine(repo data.DirtyRepo, maxWidth int) string {
 	statusColor := GitStatusColor(repo.Staged, repo.Modified, repo.Untracked)
 
 	// Repo name (padded to 20 chars)
-	repoName := repo.Name
-	if len(repoName) > 20 {
-		repoName = repoName[:17] + "..."
-	}
-	repoName = fmt.Sprintf("%-20s", repoName)
+	repoName := fmt.Sprintf("%-20s", Truncate(repo.Name, 20))
 	repoNameStyled := lipgloss.NewStyle().Foreground(statusColor).Render(repoName)
+
+	// Branch name
+	branchStr := ""
+	if repo.Branch != "" {
+		branchStr = DimStyle.Render(repo.Branch) + " "
+	}
 
 	// Status counts
 	var statusParts []string
@@ -71,5 +73,5 @@ func renderDirtyRepoLine(repo data.DirtyRepo, maxWidth int) string {
 
 	statusStr := strings.Join(statusParts, ", ")
 
-	return fmt.Sprintf("  %s %s", repoNameStyled, statusStr)
+	return fmt.Sprintf("  %s %s%s", repoNameStyled, branchStr, statusStr)
 }
