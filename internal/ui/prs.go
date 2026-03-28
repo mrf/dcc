@@ -62,34 +62,68 @@ func RenderPrsPanel(panel data.PrsPanel, width, height int, selected, loading bo
 }
 
 func renderPrLine(pr data.PullRequest, maxWidth int, showStatus bool) string {
-	// Format: #123 Title 2d [status]
+	// Format: #123 Title 2d [CI dot] [review icon]
 	prNum := fmt.Sprintf("#%d", pr.Number)
 
-	// Age with color
 	ageStr := fmt.Sprintf("%dd", pr.AgeDays)
-	ageColor := AgeColor(pr.AgeDays)
-	ageStyled := lipgloss.NewStyle().Foreground(ageColor).Render(ageStr)
+	ageStyled := lipgloss.NewStyle().Foreground(AgeColor(pr.AgeDays)).Render(ageStr)
 
-	// Status indicator for user's PRs
 	var statusIndicator string
+	statusVisualWidth := 0
+
 	if showStatus {
-		switch pr.ReviewDecision {
-		case "APPROVED":
-			statusIndicator = lipgloss.NewStyle().Foreground(ColorGreen).Render(" ✓")
-		case "CHANGES_REQUESTED":
-			statusIndicator = lipgloss.NewStyle().Foreground(ColorRed).Render(" ✗")
-		case "REVIEW_REQUIRED":
-			statusIndicator = lipgloss.NewStyle().Foreground(ColorYellow).Render(" ○")
-		}
+		statusIndicator, statusVisualWidth = renderStatusIndicators(pr)
 	}
 
-	// Calculate available width for title
-	fixedWidth := len(prNum) + 1 + len(ageStr) + len(statusIndicator) + 4 // padding and spaces
-	titleWidth := maxWidth - fixedWidth
-	if titleWidth < 10 {
-		titleWidth = 10
-	}
+	fixedWidth := len(prNum) + 1 + len(ageStr) + statusVisualWidth + 4
+	titleWidth := max(maxWidth-fixedWidth, 10)
 	title := Truncate(pr.Title, titleWidth)
 
 	return fmt.Sprintf("  %s %s %s%s", prNum, title, ageStyled, statusIndicator)
+}
+
+// renderStatusIndicators returns the styled CI and review indicators with their visual width.
+func renderStatusIndicators(pr data.PullRequest) (string, int) {
+	var indicator string
+	visualWidth := 0
+
+	// CI status dot
+	if ciStyle, ok := ciStatusStyle(pr.CIStatus); ok {
+		indicator += ciStyle.Render(" ●")
+		visualWidth += 2
+	}
+
+	// Review status icon
+	if reviewStyle, symbol, ok := reviewStatusStyle(pr.ReviewDecision); ok {
+		indicator += reviewStyle.Render(" " + symbol)
+		visualWidth += 2
+	}
+
+	return indicator, visualWidth
+}
+
+func ciStatusStyle(status string) (lipgloss.Style, bool) {
+	switch status {
+	case "success":
+		return StatusGreen, true
+	case "failure":
+		return StatusRed, true
+	case "pending":
+		return StatusYellow, true
+	default:
+		return lipgloss.Style{}, false
+	}
+}
+
+func reviewStatusStyle(decision string) (lipgloss.Style, string, bool) {
+	switch decision {
+	case "APPROVED":
+		return StatusGreen, "✓", true
+	case "CHANGES_REQUESTED":
+		return StatusRed, "✗", true
+	case "REVIEW_REQUIRED":
+		return StatusYellow, "○", true
+	default:
+		return lipgloss.Style{}, "", false
+	}
 }
