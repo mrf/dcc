@@ -17,12 +17,10 @@ func RenderMeetingsPanel(panel data.MeetingsPanel, width, height int, selected, 
 		Width(width).
 		Height(height)
 
-	title := TitleStyle.Render("MEETINGS")
-
 	var content strings.Builder
-	content.WriteString(title + "\n\n")
 
 	if loading || panel.IsLoading {
+		content.WriteString(TitleStyle.Render("MEETINGS") + "\n\n")
 		content.WriteString(ItalicStyle.Render("Checking calendar..."))
 		return style.Render(content.String())
 	}
@@ -31,6 +29,13 @@ func RenderMeetingsPanel(panel data.MeetingsPanel, width, height int, selected, 
 		content.WriteString(DimStyle.Render("Calendar integration not available\non this platform (macOS only)"))
 		return style.Render(content.String())
 	}
+
+	// Count meetings: next + upcoming
+	meetingCount := len(panel.Upcoming)
+	if panel.NextMeeting != nil {
+		meetingCount++
+	}
+	content.WriteString(TitleStyle.Render(TitleWithCount("MEETINGS", meetingCount)) + "\n\n")
 
 	// Render status line
 	statusLine := renderMeetingStatus(panel)

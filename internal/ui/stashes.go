@@ -14,15 +14,15 @@ func RenderStashesPanel(panel data.GitPanel, width, height int, selected, loadin
 		Width(width).
 		Height(height)
 
-	title := TitleStyle.Render("STASHES")
-
 	var content strings.Builder
-	content.WriteString(title + "\n\n")
 
 	if loading || panel.IsLoading {
+		content.WriteString(TitleStyle.Render("STASHES") + "\n\n")
 		content.WriteString(ItalicStyle.Render("Scanning stashes..."))
 		return style.Render(content.String())
 	}
+
+	content.WriteString(TitleStyle.Render(TitleWithCount("STASHES", len(panel.Stashes))) + "\n\n")
 
 	if len(panel.Stashes) == 0 {
 		content.WriteString(DimStyle.Render("No stashes"))
