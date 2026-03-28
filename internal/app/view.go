@@ -2,11 +2,14 @@ package app
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/charmbracelet/lipgloss"
 	"github.com/mrf/dcc/internal/ui"
 )
+
+const statusBarHeight = 3
 
 // View implements tea.Model
 func (m Model) View() string {
@@ -14,13 +17,30 @@ func (m Model) View() string {
 		return "Loading..."
 	}
 
-	// Calculate layout dimensions
-	// Top row: 40% height for 3 panels
-	// Middle row: 30% height for git
-	// Bottom row: 20% height for stashes
-	// Status bar: 3 lines
+	if m.FocusMode {
+		return m.viewFocusMode()
+	}
 
-	statusBarHeight := 3
+	return m.viewFull()
+}
+
+func (m Model) viewFocusMode() string {
+	panelHeight := m.Height - statusBarHeight
+
+	meetingsPanel := ui.RenderMeetingsPanel(
+		m.Meetings,
+		m.Width-2,
+		panelHeight-2,
+		true,
+		m.IsLoading,
+	)
+
+	statusBar := m.renderStatusBar()
+
+	return lipgloss.JoinVertical(lipgloss.Left, meetingsPanel, statusBar)
+}
+
+func (m Model) viewFull() string {
 	topRowHeight := (m.Height - statusBarHeight) * 40 / 100
 	middleRowHeight := (m.Height - statusBarHeight) * 30 / 100
 	bottomRowHeight := m.Height - statusBarHeight - topRowHeight - middleRowHeight
@@ -86,10 +106,18 @@ func (m Model) View() string {
 
 func (m Model) renderStatusBar() string {
 	// Show keyboard shortcuts and last refresh time
+	var focusLabel string
+	if m.FocusMode {
+		focusLabel = "dashboard"
+	} else {
+		focusLabel = "focus"
+	}
+
 	shortcuts := []struct {
 		key   string
 		label string
 	}{
+		{"f", focusLabel},
 		{"r", "refresh"},
 		{"p", "prs"},
 		{"m", "meetings"},
@@ -97,13 +125,12 @@ func (m Model) renderStatusBar() string {
 		{"q", "quit"},
 	}
 
-	var parts []string
-	for _, s := range shortcuts {
-		key := lipgloss.NewStyle().Bold(true).Foreground(ui.ColorCyan).Render("[" + s.key + "]")
-		parts = append(parts, key+s.label)
+	keyStyle := lipgloss.NewStyle().Bold(true).Foreground(ui.ColorCyan)
+	parts := make([]string, len(shortcuts))
+	for i, s := range shortcuts {
+		parts[i] = keyStyle.Render("["+s.key+"]") + s.label
 	}
-
-	shortcutsStr := lipgloss.JoinHorizontal(lipgloss.Left, parts[0], " ", parts[1], " ", parts[2], " ", parts[3], " ", parts[4])
+	shortcutsStr := strings.Join(parts, " ")
 
 	// Calculate time since last refresh
 	var refreshStr string

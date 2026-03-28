@@ -26,6 +26,7 @@ type Model struct {
 	Ports         data.PortsPanel
 	Git           data.GitPanel
 	SelectedPanel Panel
+	FocusMode     bool
 	IsLoading     bool
 	LastRefresh   time.Time
 	Config        config.Config
