@@ -37,6 +37,7 @@ func (m Model) View() string {
 		topRowHeight-2,
 		m.SelectedPanel == PanelMeetings,
 		m.IsLoading,
+		m.Cursors[PanelMeetings],
 	)
 
 	prsPanel := ui.RenderPrsPanel(
@@ -45,6 +46,7 @@ func (m Model) View() string {
 		topRowHeight-2,
 		m.SelectedPanel == PanelPrs,
 		m.IsLoading,
+		m.Cursors[PanelPrs],
 	)
 
 	portsPanel := ui.RenderPortsPanel(
@@ -53,6 +55,7 @@ func (m Model) View() string {
 		topRowHeight-2,
 		m.SelectedPanel == PanelPorts,
 		m.IsLoading,
+		m.Cursors[PanelPorts],
 	)
 
 	gitPanel := ui.RenderGitPanel(
@@ -61,6 +64,7 @@ func (m Model) View() string {
 		middleRowHeight-2,
 		m.SelectedPanel == PanelGit,
 		m.IsLoading,
+		m.Cursors[PanelGit],
 	)
 
 	stashesPanel := ui.RenderStashesPanel(
@@ -69,6 +73,7 @@ func (m Model) View() string {
 		bottomRowHeight-2,
 		m.SelectedPanel == PanelStashes,
 		m.IsLoading,
+		m.Cursors[PanelStashes],
 	)
 
 	// Compose layout
@@ -90,10 +95,10 @@ func (m Model) renderStatusBar() string {
 		key   string
 		label string
 	}{
+		{"tab", "panel"},
+		{"\u2191\u2193", "select"},
+		{"\u23ce", "open"},
 		{"r", "refresh"},
-		{"p", "prs"},
-		{"m", "meetings"},
-		{"g", "git"},
 		{"q", "quit"},
 	}
 

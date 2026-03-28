@@ -9,7 +9,7 @@ import (
 )
 
 // RenderStashesPanel renders the stashes panel
-func RenderStashesPanel(panel data.GitPanel, width, height int, selected, loading bool) string {
+func RenderStashesPanel(panel data.GitPanel, width, height int, selected, loading bool, cursorIdx int) string {
 	style := GetPanelStyle(selected, loading, ColorMagenta).
 		Width(width).
 		Height(height)
@@ -48,15 +48,17 @@ func RenderStashesPanel(panel data.GitPanel, width, height int, selected, loadin
 			break
 		}
 
+		isCursor := selected && reposShown == cursorIdx
 		stashes := stashesByRepo[repo]
-		content.WriteString(renderStashGroup(repo, stashes, width-4) + "\n")
+		content.WriteString(renderStashGroup(repo, stashes, width-4, isCursor) + "\n")
 		reposShown++
 	}
 
 	return style.Render(content.String())
 }
 
-func renderStashGroup(repo string, stashes []data.StashInfo, maxWidth int) string {
+func renderStashGroup(repo string, stashes []data.StashInfo, maxWidth int, isCursor bool) string {
+	prefix := ItemPrefix(isCursor)
 	// Format: repo_name (count) first_message age
 	count := len(stashes)
 	firstStash := stashes[0]
@@ -84,5 +86,5 @@ func renderStashGroup(repo string, stashes []data.StashInfo, maxWidth int) strin
 	}
 	message := Truncate(firstStash.Message, messageWidth)
 
-	return fmt.Sprintf("  %s %s %s", repoStyled, message, ageStyled)
+	return fmt.Sprintf("%s%s %s %s", prefix, repoStyled, message, ageStyled)
 }

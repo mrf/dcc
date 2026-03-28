@@ -152,16 +152,27 @@ func parseGhPrs(output []byte) []PullRequest {
 	return prs
 }
 
-// OpenFirstPr opens the first PR that needs review (or first of user's PRs) in browser
-func OpenFirstPr(panel PrsPanel) error {
-	var url string
-	if len(panel.NeedsReview) > 0 {
-		url = panel.NeedsReview[0].URL
-	} else if len(panel.YourPrs) > 0 {
-		url = panel.YourPrs[0].URL
-	} else {
-		return nil
+// OpenPrByIndex opens the PR at the given cursor index in browser.
+// Items are indexed across NeedsReview (up to 4) then YourPrs (up to 4).
+func OpenPrByIndex(panel PrsPanel, idx int) error {
+	needsReviewVisible := len(panel.NeedsReview)
+	if needsReviewVisible > 4 {
+		needsReviewVisible = 4
 	}
 
-	return exec.Command("open", url).Run()
+	if idx < needsReviewVisible {
+		return exec.Command("open", panel.NeedsReview[idx].URL).Run()
+	}
+
+	yourIdx := idx - needsReviewVisible
+	yourPrsVisible := len(panel.YourPrs)
+	if yourPrsVisible > 4 {
+		yourPrsVisible = 4
+	}
+
+	if yourIdx >= 0 && yourIdx < yourPrsVisible {
+		return exec.Command("open", panel.YourPrs[yourIdx].URL).Run()
+	}
+
+	return nil
 }
