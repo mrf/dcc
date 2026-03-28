@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"os/exec"
 	"sort"
+	"strconv"
 	"sync"
 	"time"
 
@@ -18,6 +19,7 @@ type PullRequest struct {
 	URL            string
 	AgeDays        int64
 	ReviewDecision string
+	CIStatus       string // "success", "failure", "pending", or ""
 }
 
 // PrsPanel holds PR data for display
@@ -37,6 +39,15 @@ type ghSearchPr struct {
 		NameWithOwner string `json:"nameWithOwner"`
 	} `json:"repository"`
 	ReviewDecision string `json:"reviewDecision"`
+}
+
+// ghCheckRollup represents the status check rollup from gh pr view
+type ghCheckRollup struct {
+	StatusCheckRollup []struct {
+		State      string `json:"state"`
+		Status     string `json:"status"`
+		Conclusion string `json:"conclusion"`
+	} `json:"statusCheckRollup"`
 }
 
 // FetchPrs retrieves PRs from GitHub CLI
@@ -75,6 +86,9 @@ func FetchPrs(cfg config.PrsConfig) PrsPanel {
 	}()
 
 	wg.Wait()
+
+	// Fetch CI status for authored PRs
+	enrichWithCIStatus(yourPrs)
 
 	// Sort needs_review by age (oldest first)
 	sort.Slice(needsReview, func(i, j int) bool {
@@ -120,6 +134,62 @@ func fetchAuthoredPrs() []PullRequest {
 	}
 
 	return parseGhPrs(output)
+}
+
+// fetchCIStatus fetches CI check status for a single PR
+func fetchCIStatus(repo string, number int) string {
+	cmd := exec.Command("gh", "pr", "view", strconv.Itoa(number),
+		"--repo", repo,
+		"--json", "statusCheckRollup")
+
+	output, err := cmd.Output()
+	if err != nil {
+		return ""
+	}
+
+	var rollup ghCheckRollup
+	if err := json.Unmarshal(output, &rollup); err != nil {
+		return ""
+	}
+
+	if len(rollup.StatusCheckRollup) == 0 {
+		return ""
+	}
+
+	hasFailure := false
+	hasPending := false
+	for _, check := range rollup.StatusCheckRollup {
+		switch {
+		case check.Conclusion == "FAILURE" || check.Conclusion == "TIMED_OUT" ||
+			check.Conclusion == "CANCELLED" || check.State == "FAILURE" || check.State == "ERROR":
+			hasFailure = true
+		case check.Status == "IN_PROGRESS" || check.Status == "QUEUED" ||
+			check.Status == "PENDING" || check.State == "PENDING":
+			hasPending = true
+		}
+	}
+
+	switch {
+	case hasFailure:
+		return "failure"
+	case hasPending:
+		return "pending"
+	default:
+		return "success"
+	}
+}
+
+// enrichWithCIStatus fetches CI status concurrently for all PRs
+func enrichWithCIStatus(prs []PullRequest) {
+	var wg sync.WaitGroup
+	for i := range prs {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			prs[i].CIStatus = fetchCIStatus(prs[i].Repo, prs[i].Number)
+		}()
+	}
+	wg.Wait()
 }
 
 func parseGhPrs(output []byte) []PullRequest {
