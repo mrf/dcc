@@ -28,7 +28,7 @@ func RenderMeetingsPanel(panel data.MeetingsPanel, width, height int, selected, 
 	}
 
 	if panel.Unsupported {
-		content.WriteString(DimStyle.Render("(macOS only)"))
+		content.WriteString(DimStyle.Render("Calendar integration not available\non this platform (macOS only)"))
 		return style.Render(content.String())
 	}
 
@@ -59,7 +59,7 @@ func RenderMeetingsPanel(panel data.MeetingsPanel, width, height int, selected, 
 }
 
 func determineMeetingsBorderColor(panel data.MeetingsPanel) lipgloss.Color {
-	if panel.IsLoading {
+	if panel.IsLoading || panel.Unsupported {
 		return ColorDarkGray
 	}
 
