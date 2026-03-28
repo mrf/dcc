@@ -1,11 +1,6 @@
-<<<<<<< Updated upstream
 # Go
 /build/
 /dcc
-=======
-# go
-build
->>>>>>> Stashed changes
 
 # IDE
 .idea/
